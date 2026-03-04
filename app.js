@@ -26,7 +26,6 @@ const projects = [
   },
 ];
 
-const reviewRegex = /\b(?:ready\s+for\s+review|r4r|pending\s+review)\b/gi;
 const autoRefreshMs = 10 * 60 * 1000;
 
 const resultsBody = document.getElementById("resultsBody");
@@ -39,10 +38,9 @@ const highestProject = document.getElementById("highestProject");
 const healthyProjects = document.getElementById("healthyProjects");
 
 let autoRefreshHandle = null;
-let usedJsonpFallback = false;
 
 function escapeHtml(text) {
-  return text
+  return String(text)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -55,86 +53,33 @@ function setLoadingState(isLoading) {
   refreshButton.textContent = isLoading ? "Refreshing..." : "Refresh now";
 }
 
-function buildApiUrl(title, { useJsonp = false } = {}) {
-  const query = new URLSearchParams({
-    action: "query",
-    prop: "revisions",
-    rvprop: "content",
-    rvslots: "main",
-    titles: title,
-    format: "json",
-    formatversion: "2",
+async function loadSnapshot() {
+  const response = await fetch(`./data/review-counts.json?t=${Date.now()}`);
+  if (!response.ok) {
+    throw new Error(`Snapshot unavailable (HTTP ${response.status})`);
+  }
+
+  const payload = await response.json();
+  const sourceRows = Array.isArray(payload?.projects) ? payload.projects : [];
+  const byTitle = new Map(sourceRows.map((row) => [row.wikiTitle, row]));
+
+  const rows = projects.map((project) => {
+    const snapshotRow = byTitle.get(project.wikiTitle);
+    if (!snapshotRow) {
+      return { ...project, error: "No snapshot entry" };
+    }
+
+    if (snapshotRow.error) {
+      return { ...project, error: snapshotRow.error };
+    }
+
+    return {
+      ...project,
+      count: Number.isFinite(snapshotRow.count) ? snapshotRow.count : Number(snapshotRow.count) || 0,
+    };
   });
 
-  if (useJsonp) {
-    query.set("callback", "?");
-  } else {
-    query.set("origin", "*");
-  }
-
-  return `https://wiki.project-tamriel.com/api.php?${query.toString()}`;
-}
-
-function fetchJsonp(url, timeoutMs = 12000) {
-  return new Promise((resolve, reject) => {
-    const callbackName = `ptrReviewTrackerJsonp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    const script = document.createElement("script");
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error("JSONP request timed out"));
-    }, timeoutMs);
-
-    function cleanup() {
-      clearTimeout(timeout);
-      delete window[callbackName];
-      script.remove();
-    }
-
-    window[callbackName] = (data) => {
-      cleanup();
-      resolve(data);
-    };
-
-    script.onerror = () => {
-      cleanup();
-      reject(new Error("JSONP script failed to load"));
-    };
-
-    script.src = url.replace("callback=%3F", `callback=${callbackName}`);
-    document.head.append(script);
-  });
-}
-
-function parseWikiContent(data) {
-  const content = data?.query?.pages?.[0]?.revisions?.[0]?.slots?.main?.content;
-  if (typeof content !== "string") {
-    throw new Error("Unexpected response format");
-  }
-
-  return {
-    count: (content.match(reviewRegex) ?? []).length,
-  };
-}
-
-async function fetchProjectCount(project) {
-  try {
-    const response = await fetch(buildApiUrl(project.wikiTitle));
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-    return parseWikiContent(data);
-  } catch (error) {
-    const isNetworkFailure = error instanceof TypeError || `${error}`.includes("Failed to fetch");
-    if (!isNetworkFailure) {
-      throw error;
-    }
-
-    usedJsonpFallback = true;
-    const data = await fetchJsonp(buildApiUrl(project.wikiTitle, { useJsonp: true }));
-    return parseWikiContent(data);
-  }
+  return { rows, generatedAt: payload?.generatedAt ?? null };
 }
 
 function renderSummary(rows) {
@@ -157,7 +102,7 @@ function renderCards(rows) {
       if (row.error) {
         return `<article class="project-card error-card">
           <h3>${escapeHtml(row.name)}</h3>
-          <p class="card-error">Could not fetch data: ${escapeHtml(row.error)}</p>
+          <p class="card-error">Could not load snapshot: ${escapeHtml(row.error)}</p>
           <p><a href="${row.url}" target="_blank" rel="noopener noreferrer">Open wiki page</a></p>
         </article>`;
       }
@@ -214,36 +159,33 @@ function scheduleAutoRefresh() {
 
 async function refresh() {
   setLoadingState(true);
-  usedJsonpFallback = false;
 
-  const rows = await Promise.all(
-    projects.map(async (project) => {
-      try {
-        const result = await fetchProjectCount(project);
-        return { ...project, ...result };
-      } catch (error) {
-        return {
-          ...project,
-          error: error instanceof Error ? error.message : "Unknown error",
-        };
-      }
-    })
-  );
+  try {
+    const { rows, generatedAt } = await loadSnapshot();
 
-  rows.sort((a, b) => {
-    if (a.error && b.error) return a.name.localeCompare(b.name);
-    if (a.error) return 1;
-    if (b.error) return -1;
-    return b.count - a.count;
-  });
+    rows.sort((a, b) => {
+      if (a.error && b.error) return a.name.localeCompare(b.name);
+      if (a.error) return 1;
+      if (b.error) return -1;
+      return b.count - a.count;
+    });
 
-  renderSummary(rows);
-  renderCards(rows);
-  renderTable(rows);
+    renderSummary(rows);
+    renderCards(rows);
+    renderTable(rows);
 
-  const suffix = usedJsonpFallback ? " (using cross-origin fallback)" : "";
-  lastUpdated.textContent = `Last updated: ${new Date().toLocaleString()}${suffix}`;
-  setLoadingState(false);
+    const generated = generatedAt ? new Date(generatedAt).toLocaleString() : "unknown";
+    lastUpdated.textContent = `Snapshot generated: ${generated}`;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    const rows = projects.map((project) => ({ ...project, error: message }));
+    renderSummary(rows);
+    renderCards(rows);
+    renderTable(rows);
+    lastUpdated.textContent = "Snapshot unavailable";
+  } finally {
+    setLoadingState(false);
+  }
 }
 
 refreshButton.addEventListener("click", refresh);

@@ -1,0 +1,35 @@
+{
+  "generatedAt": "2026-03-04T21:21:38.882668+00:00",
+  "projects": [
+    {
+      "name": "Salt and Spice",
+      "wikiTitle": "Salt_and_Spice_Expansion",
+      "url": "https://wiki.project-tamriel.com/wiki/Salt_and_Spice_Expansion",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "name": "Markarth",
+      "wikiTitle": "Markarth_Expansion",
+      "url": "https://wiki.project-tamriel.com/wiki/Markarth_Expansion",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "name": "Rihad",
+      "wikiTitle": "Rihad_Expansion",
+      "url": "https://wiki.project-tamriel.com/wiki/Rihad_Expansion",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "name": "Poison Song",
+      "wikiTitle": "Poison_Song_Expansion",
+      "url": "https://wiki.project-tamriel.com/wiki/Poison_Song_Expansion",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "name": "Scars of the Shadow",
+      "wikiTitle": "Scars_of_the_Shadow_Expansion",
+      "url": "https://wiki.project-tamriel.com/wiki/Scars_of_the_Shadow_Expansion",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    }
+  ]
+}

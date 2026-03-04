@@ -8,45 +8,32 @@ A simple web page GUI you can host on GitHub Pages to keep an eye on interior re
 - Poison Song
 - Scars of the Shadow
 
-The page queries the Project Tamriel wiki API and counts mentions of:
+## Why this now works on GitHub Pages
 
-- `Ready for Review`
-- `R4R`
-- `Pending Review`
+The browser no longer calls the wiki API directly (which caused `Failed to fetch` CORS/network issues).
 
-## I just want a URL I can visit
+Instead:
 
-Yes — after publishing with GitHub Pages, you use it like any normal website.
+1. A GitHub Action fetches wiki page source server-side.
+2. It writes `data/review-counts.json`.
+3. Your static page reads that local JSON file.
 
-Your URL will be:
+This works reliably on GitHub Pages because the page only fetches same-origin files.
+
+## Your URL
 
 - `https://<your-github-username>.github.io/<repo-name>/`
 
-Example:
+## Update frequency
 
-- if your username is `alice` and your repo is `PTR-review-tracker`, open:
-- `https://alice.github.io/PTR-review-tracker/`
+- The deploy workflow runs on push and every 30 minutes via cron.
+- The page auto-refreshes every 10 minutes, and manual refresh reloads the latest snapshot file.
 
-## Quick publish steps (one-time setup)
-
-1. Create a GitHub repo and push this code.
-2. In GitHub, go to **Settings → Pages**.
-3. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-4. Push to `main` (or run the workflow manually in **Actions**).
-5. Open the deployed Pages URL shown in the workflow run summary.
-
-This repo includes `.github/workflows/deploy-pages.yml`, so deployment is automatic when you push to `main`.
-
-## Day-to-day use
-
-1. Open your GitHub Pages URL.
-2. Click **Refresh now** whenever you want a fresh snapshot.
-3. Keep auto-refresh on if you want it to update every 10 minutes.
-
-## Run locally (optional)
+## Run locally
 
 ```bash
+python3 scripts/update_review_counts.py
 python3 -m http.server 8000
 ```
 
-Then open <http://localhost:8000>.
+Open <http://localhost:8000>.
