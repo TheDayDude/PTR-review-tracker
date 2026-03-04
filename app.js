@@ -36,6 +36,7 @@ const lastUpdated = document.getElementById("lastUpdated");
 const totalMentions = document.getElementById("totalMentions");
 const highestProject = document.getElementById("highestProject");
 const healthyProjects = document.getElementById("healthyProjects");
+const dataSourceStatus = document.getElementById("dataSourceStatus");
 
 let autoRefreshHandle = null;
 
@@ -51,6 +52,15 @@ function escapeHtml(text) {
 function setLoadingState(isLoading) {
   refreshButton.disabled = isLoading;
   refreshButton.textContent = isLoading ? "Refreshing..." : "Refresh now";
+}
+
+function normalizeErrorMessage(message) {
+  if (!message) return "Unknown error";
+  const text = String(message);
+  if (text.toLowerCase().includes("jsonp script failed to load")) {
+    return "Old JSONP build is still cached. Hard refresh (Ctrl/Cmd+Shift+R) and redeploy latest commit.";
+  }
+  return text;
 }
 
 async function loadSnapshot() {
@@ -70,7 +80,7 @@ async function loadSnapshot() {
     }
 
     if (snapshotRow.error) {
-      return { ...project, error: snapshotRow.error };
+      return { ...project, error: normalizeErrorMessage(snapshotRow.error) };
     }
 
     return {
@@ -176,13 +186,15 @@ async function refresh() {
 
     const generated = generatedAt ? new Date(generatedAt).toLocaleString() : "unknown";
     lastUpdated.textContent = `Snapshot generated: ${generated}`;
+    dataSourceStatus.textContent = "Data source: local snapshot file (data/review-counts.json).";
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = normalizeErrorMessage(error instanceof Error ? error.message : "Unknown error");
     const rows = projects.map((project) => ({ ...project, error: message }));
     renderSummary(rows);
     renderCards(rows);
     renderTable(rows);
     lastUpdated.textContent = "Snapshot unavailable";
+    dataSourceStatus.textContent = "Data source: unavailable. Check GitHub Pages deployment workflow logs.";
   } finally {
     setLoadingState(false);
   }
