@@ -49,7 +49,17 @@ function escapeHtml(text) {
     .replaceAll("'", "&#39;");
 }
 
+function setText(element, text) {
+  if (element) {
+    element.textContent = text;
+  }
+}
+
 function setLoadingState(isLoading) {
+  if (!refreshButton) {
+    return;
+  }
+
   refreshButton.disabled = isLoading;
   refreshButton.textContent = isLoading ? "Refreshing..." : "Refresh now";
 }
@@ -99,12 +109,16 @@ function renderSummary(rows) {
     ? healthy.reduce((current, row) => (row.count > current.count ? row : current), healthy[0])
     : null;
 
-  totalMentions.textContent = String(total);
-  highestProject.textContent = highest ? `${highest.name} (${highest.count})` : "No data";
-  healthyProjects.textContent = `${healthy.length}/${projects.length}`;
+  setText(totalMentions, String(total));
+  setText(highestProject, highest ? `${highest.name} (${highest.count})` : "No data");
+  setText(healthyProjects, `${healthy.length}/${projects.length}`);
 }
 
 function renderCards(rows) {
+  if (!cards) {
+    return;
+  }
+
   const maxCount = Math.max(1, ...rows.filter((row) => !row.error).map((row) => row.count));
 
   cards.innerHTML = rows
@@ -129,6 +143,10 @@ function renderCards(rows) {
 }
 
 function renderTable(rows) {
+  if (!resultsBody) {
+    return;
+  }
+
   const healthy = rows.filter((row) => !row.error);
   const total = healthy.reduce((sum, row) => sum + row.count, 0);
 
@@ -162,7 +180,7 @@ function scheduleAutoRefresh() {
     autoRefreshHandle = null;
   }
 
-  if (autoRefreshToggle.checked) {
+  if (autoRefreshToggle?.checked) {
     autoRefreshHandle = setInterval(refresh, autoRefreshMs);
   }
 }
@@ -185,23 +203,28 @@ async function refresh() {
     renderTable(rows);
 
     const generated = generatedAt ? new Date(generatedAt).toLocaleString() : "unknown";
-    lastUpdated.textContent = `Snapshot generated: ${generated}`;
-    dataSourceStatus.textContent = "Data source: local snapshot file (data/review-counts.json).";
+    setText(lastUpdated, `Snapshot generated: ${generated}`);
+    setText(dataSourceStatus, "Data source: local snapshot file (data/review-counts.json). ");
   } catch (error) {
     const message = normalizeErrorMessage(error instanceof Error ? error.message : "Unknown error");
     const rows = projects.map((project) => ({ ...project, error: message }));
     renderSummary(rows);
     renderCards(rows);
     renderTable(rows);
-    lastUpdated.textContent = "Snapshot unavailable";
-    dataSourceStatus.textContent = "Data source: unavailable. Check GitHub Pages deployment workflow logs.";
+    setText(lastUpdated, "Snapshot unavailable");
+    setText(dataSourceStatus, "Data source: unavailable. Check GitHub Pages deployment workflow logs.");
   } finally {
     setLoadingState(false);
   }
 }
 
-refreshButton.addEventListener("click", refresh);
-autoRefreshToggle.addEventListener("change", scheduleAutoRefresh);
+if (refreshButton) {
+  refreshButton.addEventListener("click", refresh);
+}
+
+if (autoRefreshToggle) {
+  autoRefreshToggle.addEventListener("change", scheduleAutoRefresh);
+}
 
 scheduleAutoRefresh();
 refresh();
