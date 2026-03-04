@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PTR Interior Review Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Project Tamriel / Tamriel Rebuilt Interior Review Tracker</h1>
+        <p>
+          Counts mentions of <strong>Ready for Review</strong>, <strong>R4R</strong>, and
+          <strong>Pending Review</strong> from each expansion wiki page.
+        </p>
+      </header>
+
+      <section class="controls">
+        <button id="refreshButton" type="button">Refresh counts</button>
+        <p id="lastUpdated" aria-live="polite"></p>
+      </section>
+
+      <section>
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Status mentions found</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </section>
+
+      <section class="notes">
+        <h2>Notes</h2>
+        <ul>
+          <li>
+            This is a quick signal, not a perfect task count. It counts matching phrases in each
+            page's source text.
+          </li>
+          <li>
+            If page formats change, you can update the keywords in <code>app.js</code>.
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+:root {
+  color-scheme: light dark;
+  --bg: #111827;
+  --card: #1f2937;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #22d3ee;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #475569;
+    --accent: #0891b2;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+header h1 {
+  margin-bottom: 0.5rem;
+}
+
+header p {
+  margin-top: 0;
+  color: var(--muted);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+button {
+  border: 0;
+  background: var(--accent);
+  color: white;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 0.75rem;
+  border-bottom: 1px solid color-mix(in hsl, var(--muted) 30%, transparent);
+  text-align: left;
+  vertical-align: top;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+.status-good {
+  font-weight: 700;
+  color: #10b981;
+}
+
+.status-error {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.notes {
+  margin-top: 1.5rem;
+  color: var(--muted);
+}
+
+code {
+  background: color-mix(in hsl, var(--muted) 25%, transparent);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
