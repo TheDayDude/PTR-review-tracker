@@ -3,58 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PTR Review Tracker</title>
+    <title>PTR Review Tracker (Simple Test)</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="container">
       <header class="hero">
-        <h1>PTR Interior Review Tracker</h1>
-        <p>
-          Quick daily snapshot of interiors waiting on review across Project Tamriel / Tamriel Rebuilt
-          expansion pages.
-        </p>
+        <h1>PTR Review Tracker (Simple Test)</h1>
+        <p>Just the count of R4R / Pending Review mentions for each project.</p>
       </header>
 
       <section class="toolbar" aria-label="Controls">
-        <button id="refreshButton" type="button">Refresh now</button>
-        <label class="auto-refresh">
-          <input id="autoRefreshToggle" type="checkbox" checked />
-          Auto refresh every 10 minutes
-        </label>
+        <button id="refreshButton" type="button">Refresh</button>
         <p id="lastUpdated" aria-live="polite"></p>
-        <p id="dataSourceStatus" class="data-source-status" aria-live="polite"></p>
-      </section>
-
-      <section class="summary-grid" aria-label="Summary stats">
-        <article class="summary-card">
-          <h2>Total review mentions</h2>
-          <p id="totalMentions" class="summary-value">—</p>
-        </article>
-        <article class="summary-card">
-          <h2>Highest workload</h2>
-          <p id="highestProject" class="summary-value">—</p>
-        </article>
-        <article class="summary-card">
-          <h2>Projects reporting</h2>
-          <p id="healthyProjects" class="summary-value">—</p>
-        </article>
       </section>
 
       <section>
-        <h2>Project workload breakdown</h2>
-        <div id="cards" class="cards" aria-live="polite"></div>
-      </section>
-
-      <section>
-        <h2>Raw table</h2>
+        <h2>Project counts</h2>
         <table>
           <thead>
             <tr>
               <th>Project</th>
-              <th>Mentions</th>
-              <th>Share</th>
-              <th>Status</th>
+              <th>R4R/Pending mentions</th>
             </tr>
           </thead>
           <tbody id="resultsBody"></tbody>
@@ -62,17 +32,10 @@
       </section>
 
       <section class="notes">
-        <h2>How this helps</h2>
-        <ul>
-          <li>Use the top workload card to decide where your next review session should go.</li>
-          <li>
-            This counts status words in wiki source (<code>Ready for Review</code>, <code>R4R</code>,
-            <code>Pending Review</code>) as a simple planning signal.
-          </li>
-        </ul>
+        <p id="statusText" aria-live="polite"></p>
       </section>
     </main>
 
-    <script src="app.js?v=20260304"></script>
+    <script src="app.js?v=20260305"></script>
   </body>
 </html>

@@ -1,35 +1,10 @@
 {
-  "generatedAt": "2026-03-04T23:22:02.930249+00:00",
-  "projects": [
-    {
-      "name": "Salt and Spice",
-      "wikiTitle": "Salt_and_Spice_Expansion",
-      "url": "https://wiki.project-tamriel.com/wiki/Salt_and_Spice_Expansion",
-      "error": "Fetch failed: <urlopen error [Errno 101] Network is unreachable>"
-    },
-    {
-      "name": "Markarth",
-      "wikiTitle": "Markarth_Expansion",
-      "url": "https://wiki.project-tamriel.com/wiki/Markarth_Expansion",
-      "error": "Fetch failed: <urlopen error [Errno 101] Network is unreachable>"
-    },
-    {
-      "name": "Rihad",
-      "wikiTitle": "Rihad_Expansion",
-      "url": "https://wiki.project-tamriel.com/wiki/Rihad_Expansion",
-      "error": "Fetch failed: <urlopen error [Errno 101] Network is unreachable>"
-    },
-    {
-      "name": "Poison Song",
-      "wikiTitle": "Poison_Song_Expansion",
-      "url": "https://wiki.project-tamriel.com/wiki/Poison_Song_Expansion",
-      "error": "Fetch failed: <urlopen error [Errno 101] Network is unreachable>"
-    },
-    {
-      "name": "Scars of the Shadow",
-      "wikiTitle": "Scars_of_the_Shadow_Expansion",
-      "url": "https://wiki.project-tamriel.com/wiki/Scars_of_the_Shadow_Expansion",
-      "error": "Fetch failed: <urlopen error [Errno 101] Network is unreachable>"
-    }
-  ]
+  "generatedAt": "2026-03-05T00:00:00Z",
+  "counts": {
+    "Salt_and_Spice_Expansion": 0,
+    "Markarth_Expansion": 0,
+    "Rihad_Expansion": 0,
+    "Poison_Song_Expansion": 0,
+    "Scars_of_the_Shadow_Expansion": 0
+  }
 }
