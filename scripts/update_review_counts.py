@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import html
 import json
 import re
 import urllib.error
@@ -35,10 +36,8 @@ PROJECTS = [
 ]
 
 REVIEW_REGEX = re.compile(r"\b(?:ready\s+for\s+review|r4r|pending\s+review)\b", re.IGNORECASE)
+TAG_REGEX = re.compile(r"<[^>]+>")
 REQUEST_HEADERS = {"User-Agent": "PTR-Review-Tracker/1.0"}
-
-# Explicitly disable env proxy usage (HTTP[S]_PROXY), which can cause
-# "Tunnel connection failed: 403 Forbidden" in some runners.
 NO_PROXY_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
@@ -48,54 +47,46 @@ def open_url(url: str, timeout: int = 30) -> bytes:
         return response.read()
 
 
-def fetch_wiki_source_raw(title: str) -> str:
-    params = urllib.parse.urlencode({"title": title, "action": "raw"})
-    url = f"https://wiki.project-tamriel.com/index.php?{params}"
-    data = open_url(url)
-    return data.decode("utf-8", errors="replace")
-
-
-def fetch_wiki_source_api(title: str) -> str:
+def fetch_rendered_page_text(title: str) -> str:
     params = urllib.parse.urlencode(
         {
-            "action": "query",
-            "prop": "revisions",
-            "rvprop": "content",
-            "rvslots": "main",
-            "titles": title,
+            "action": "parse",
+            "page": title,
+            "prop": "text",
             "format": "json",
             "formatversion": "2",
         }
     )
     url = f"https://wiki.project-tamriel.com/api.php?{params}"
     payload = json.loads(open_url(url).decode("utf-8", errors="replace"))
-    content = payload.get("query", {}).get("pages", [{}])[0].get("revisions", [{}])[0].get("slots", {}).get("main", {}).get("content")
-    if not isinstance(content, str):
-        raise RuntimeError("Unexpected MediaWiki API response format")
-    return content
+    html_text = payload.get("parse", {}).get("text")
+    if not isinstance(html_text, str):
+        raise RuntimeError("Unexpected parse API response format")
 
-
-def fetch_wiki_source(title: str) -> str:
-    try:
-        return fetch_wiki_source_raw(title)
-    except Exception:
-        # fallback endpoint in case ?action=raw is blocked upstream
-        return fetch_wiki_source_api(title)
+    plain = TAG_REGEX.sub(" ", html_text)
+    plain = html.unescape(plain)
+    return re.sub(r"\s+", " ", plain)
 
 
 def main() -> None:
     results = []
+    counts = {}
+
     for project in PROJECTS:
         item = {**project}
         try:
-            source = fetch_wiki_source(project["wikiTitle"])
-            item["count"] = len(REVIEW_REGEX.findall(source))
+            page_text = fetch_rendered_page_text(project["wikiTitle"])
+            count = len(REVIEW_REGEX.findall(page_text))
+            item["count"] = count
+            counts[project["wikiTitle"]] = count
         except (urllib.error.URLError, TimeoutError, RuntimeError, OSError, json.JSONDecodeError) as exc:
             item["error"] = f"Fetch failed: {exc}"
+            counts[project["wikiTitle"]] = 0
         results.append(item)
 
     payload = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "counts": counts,
         "projects": results,
     }
 

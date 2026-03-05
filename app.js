@@ -26,22 +26,27 @@ function escapeHtml(text) {
     .replaceAll("'", "&#39;");
 }
 
-function parseCounts(payload) {
+function parsePayload(payload) {
   const countsByTitle = new Map();
+  const errorByTitle = new Map();
 
   if (payload && typeof payload.counts === "object" && payload.counts !== null) {
     for (const [title, count] of Object.entries(payload.counts)) {
       countsByTitle.set(title, Number(count) || 0);
     }
-    return countsByTitle;
   }
 
   const sourceRows = Array.isArray(payload?.projects) ? payload.projects : [];
   for (const row of sourceRows) {
-    countsByTitle.set(row.wikiTitle, Number(row.count) || 0);
+    if (!countsByTitle.has(row.wikiTitle)) {
+      countsByTitle.set(row.wikiTitle, Number(row.count) || 0);
+    }
+    if (row.error) {
+      errorByTitle.set(row.wikiTitle, row.error);
+    }
   }
 
-  return countsByTitle;
+  return { countsByTitle, errorByTitle };
 }
 
 function renderRows(rows) {
@@ -63,7 +68,7 @@ async function refresh() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const payload = await response.json();
-    const countsByTitle = parseCounts(payload);
+    const { countsByTitle, errorByTitle } = parsePayload(payload);
 
     const rows = projects.map((project) => ({
       ...project,
@@ -72,7 +77,16 @@ async function refresh() {
 
     renderRows(rows);
     lastUpdated.textContent = `Last updated: ${new Date().toLocaleString()}`;
-    statusText.textContent = "Simple test mode: showing count only.";
+
+    if (errorByTitle.size > 0) {
+      const failed = rows
+        .filter((row) => errorByTitle.has(row.wikiTitle))
+        .map((row) => row.name)
+        .join(", ");
+      statusText.textContent = `Snapshot loaded, but wiki fetch failed for: ${failed}. (Counts defaulted to 0 for those.)`;
+    } else {
+      statusText.textContent = "Simple test mode: showing count only from rendered wiki pages.";
+    }
   } catch (error) {
     const rows = projects.map((project) => ({ ...project, count: 0 }));
     renderRows(rows);

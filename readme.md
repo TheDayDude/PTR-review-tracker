@@ -1,14 +1,13 @@
 # PTR Review Tracker (Simple Test)
 
-This simplified test page only shows one thing:
+This simplified test page shows one thing:
 
 - number of `R4R` / `Pending Review` mentions per project
 
-## What changed
+## Important behavior
 
-- No complex cards/charts in this mode.
-- If snapshot loading fails, the page shows `0` for all projects instead of noisy fetch errors.
-- Data comes from `data/review-counts.json`.
+- Counts are generated from **rendered wiki page text** using MediaWiki `action=parse`.
+- If the updater cannot reach a project page, that project is set to `0` and listed in the status message.
 
 ## Publish and use
 
@@ -21,20 +20,23 @@ This simplified test page only shows one thing:
 
 ```json
 {
-  "generatedAt": "2026-03-05T00:00:00Z",
+  "generatedAt": "...",
   "counts": {
-    "Salt_and_Spice_Expansion": 0,
-    "Markarth_Expansion": 0,
-    "Rihad_Expansion": 0,
-    "Poison_Song_Expansion": 0,
-    "Scars_of_the_Shadow_Expansion": 0
-  }
+    "Salt_and_Spice_Expansion": 0
+  },
+  "projects": [
+    {
+      "wikiTitle": "Salt_and_Spice_Expansion",
+      "count": 0
+    }
+  ]
 }
 ```
 
 ## Local run
 
 ```bash
+python3 scripts/update_review_counts.py
 python3 -m http.server 8000
 ```
 
