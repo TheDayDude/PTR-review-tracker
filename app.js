@@ -70,6 +70,9 @@ function normalizeErrorMessage(message) {
   if (text.toLowerCase().includes("jsonp script failed to load")) {
     return "Old JSONP build is still cached. Hard refresh (Ctrl/Cmd+Shift+R) and redeploy latest commit.";
   }
+  if (text.toLowerCase().includes("tunnel connection failed") || text.toLowerCase().includes("403 forbidden")) {
+    return "Snapshot updater could not reach the wiki from the runner. Re-run the deploy workflow after this fix (it now bypasses proxy tunnels).";
+  }
   return text;
 }
 
